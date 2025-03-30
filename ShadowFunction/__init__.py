@@ -76,7 +76,7 @@ async def get_agent() -> Optional[OpenAIAssistantAgent]:
     try:
         # (4) Retrieve the agent
         agent = await OpenAIAssistantAgent.retrieve(
-            id=ASSISTANT_ID, kernel=kernel, ai_model_id="gpt-4o"
+            id=ASSISTANT_ID, kernel=kernel, ai_model_id="gpt"
         )
         if agent is None:
             logger.error("Failed to retrieve the assistant agent. Please check the assistant ID.")
