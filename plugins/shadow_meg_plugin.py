@@ -1,40 +1,37 @@
 from typing import Annotated
 from semantic_kernel.functions.kernel_function_decorator import kernel_function
-from openai import AsyncOpenAI
+from tools.searchcustomer import SearchCustomer
 
 
 class ShadowMegPlugin:
-    """Plugin class that handles MEG actions and tasks."""
+    """Plugin class that accepts a PromptTemplateConfig for advanced configuration."""
 
     def __init__(
-        self, openai_client: AsyncOpenAI
+        self, search_customer_client: SearchCustomer
     ):
         """
-        :param openai_client: openai client
+        :param search_customer_client: A SearchCustomer client used for customer index searches.
         """
-        
-        self.openai_client = openai_client
-        
+        self.search_customer_client = search_customer_client
+
     @kernel_function(
-        name="summarize_conversation",
-        description="When the user asks for a summary of the conversation, retrieve the current conversation with the threadId and summarize it.",
+        name="get_customer_docs",
+        description="Given a user query determine if a company name was mentioned. Use the company name and the query information to search the index containing information about customers.",
     )
-    def summarize_conversation(
-        self, query: Annotated[str, "The query from the user."], currentThreadId: Annotated[str, f"The currentThreadId."]
-    ) -> Annotated[str, "Returns a summary of the current conversation."]:
+    def get_customer_docs(
+        self, query: Annotated[str, "The query and the customer name from the user."]
+    ) -> Annotated[str, "Returns documents from the customer index."]:
         try:
-            print(f"query:  {query} thread_id:  {currentThreadId}")
-            response = self.openai_client.beta.threads.messages.list(currentThreadId)
-            
-            if response:
-                for msg in response:
-                    print(f"{msg['role']}: {msg['content']}")
-            
-            #messages = response.data
-        
-            #sorted_messages = sorted(messages, key=lambda x: x.get('created_at', 0))
+            # Ensure query is valid
+            if not isinstance(query, str) or not query.strip():
+                raise ValueError("The query must be a non-empty string.")
 
-
+            # Perform the search
+            docs = self.search_customer_client.search_hybrid(query)
+            if not docs:
+                return "No relevant documents found in the customer index."
+            return docs
+        except ValueError as ve:
+            return f"Input error: {ve}"
         except Exception as e:
-            print(f"Error retrieving thread history: {e}")
-            return None
+            return f"An error occurred while retrieving customer documents: {e}"

@@ -17,6 +17,8 @@ from semantic_kernel.contents.utils.author_role import AuthorRole
 # Import the modified plugin class
 from plugins.shadow_meg_plugin import ShadowMegPlugin
 
+from tools.searchcustomer import SearchCustomer
+
 from typing import Optional
 
 app = fastapi.FastAPI()
@@ -41,7 +43,7 @@ class ShadowRequest(BaseModel):
     threadId: str
 
 # Instantiate search clients as singletons (if they are thread-safe or handle concurrency internally)
-openai_client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
+search_customer_client = SearchCustomer()
 ASSISTANT_ID = os.environ.get("ASSISTANT_ID")
 currentthreadId = ""
 
@@ -58,8 +60,8 @@ async def get_agent() -> Optional[OpenAIAssistantAgent]:
     
     try:
         # (2) Add plugin
-        # Instantiate ShadowMegPlugin and pass the openai client
-        shadow_plugin = ShadowMegPlugin(openai_client)
+        # Instantiate ShadowMegPlugin and pass the customer search client
+        shadow_plugin = ShadowMegPlugin(search_customer_client)
     except Exception as e:
         logger.error("Failed to instantiate ShadowMegPlugin: %s", e)
         return None
@@ -74,7 +76,7 @@ async def get_agent() -> Optional[OpenAIAssistantAgent]:
     try:
         # (4) Retrieve the agent
         agent = await OpenAIAssistantAgent.retrieve(
-            id=ASSISTANT_ID, kernel=kernel, ai_model_id="gpt-4.5-preview"
+            id=ASSISTANT_ID, kernel=kernel, ai_model_id="gpt-4o"
         )
         if agent is None:
             logger.error("Failed to retrieve the assistant agent. Please check the assistant ID.")
