@@ -62,12 +62,12 @@ async def main():
 
         # Point this to your actual SSE endpoint
         #url = "https://shadow-fastapi-6azng7abetzb2-function-app.azurewebsites.net/shadow-sk-no-stream"
-        url = "http://localhost:7071/meg_chat"
+        url = "http://localhost:7071/meg-chat"
 
         # Construct request payload
         payload = {
             "query": query,
-            "threadId": thread_id,
+            "threadId": thread_id
         }  # thread_id will be empty first time
         # call consume what will create the streaming like output
         thread_id = await consume_sse(url, payload)

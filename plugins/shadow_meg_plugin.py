@@ -4,8 +4,6 @@ from tools.searchcustomer import SearchCustomer
 
 
 class ShadowMegPlugin:
-    """Plugin class that accepts a PromptTemplateConfig for advanced configuration."""
-
     def __init__(
         self, search_customer_client: SearchCustomer
     ):

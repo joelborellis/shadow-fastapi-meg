@@ -41,6 +41,7 @@ logger.setLevel(logging.INFO)
 class ShadowRequest(BaseModel):
     query: str
     threadId: str
+    additional_instructions: Optional[str] = None
 
 # Instantiate search clients as singletons (if they are thread-safe or handle concurrency internally)
 search_customer_client = SearchCustomer()
@@ -76,8 +77,8 @@ async def get_agent() -> Optional[OpenAIAssistantAgent]:
     try:
         # (4) Retrieve the agent
         agent = await OpenAIAssistantAgent.retrieve(
-            id=ASSISTANT_ID, kernel=kernel, ai_model_id="gpt"
-        )
+            id=ASSISTANT_ID, kernel=kernel, ai_model_id="model"
+        )  # api requires the ai_model_id but it is defined in the retrieved assistant so this is not used
         if agent is None:
             logger.error("Failed to retrieve the assistant agent. Please check the assistant ID.")
             return None
@@ -87,7 +88,7 @@ async def get_agent() -> Optional[OpenAIAssistantAgent]:
 
     return agent
 
-@app.post("/meg_chat")
+@app.post("/meg-chat")
 async def meg_chat(request: ShadowRequest):
     """
     Endpoint that receives a query, passes it to the agent, and returns a single JSON response.
@@ -105,23 +106,26 @@ async def meg_chat(request: ShadowRequest):
     # Create the user message content with the request.query
     message_user = ChatMessageContent(role=AuthorRole.USER, content=request.query)
     await agent.add_chat_message(thread_id=currentthreadId, message=message_user)
-
+    
+    # get any additional instructions passed for the assistant
+    additional_instructions = request.additional_instructions or None
+    
     try:
         # Collect all messages from the async iterable
         full_response = []
-        async for message in agent.invoke(thread_id=currentthreadId):
+        async for message in agent.invoke(thread_id=currentthreadId, additional_instructions=additional_instructions):
             if message.content.strip():  # Skip empty content
                 full_response.append(message.content)
 
         if not full_response:
-            return {"error": "Empty response from the agent.", "thread_id": currentthreadId}
+            return {"error": "Empty response from the agent.", "threadId": currentthreadId}
 
         # Combine the collected messages into a single string
         combined_response = " ".join(full_response)
 
         json_response = {
             "data": combined_response,
-            "thread_id": currentthreadId
+            "threadId": currentthreadId
         }
         # Return json response
         return JSONResponse(json_response, status_code=200)
