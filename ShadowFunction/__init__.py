@@ -42,6 +42,7 @@ class ShadowRequest(BaseModel):
     query: str
     threadId: str
     additional_instructions: Optional[str] = None
+    target_account: str
 
 # Instantiate search clients as singletons (if they are thread-safe or handle concurrency internally)
 search_customer_client = SearchCustomer()
@@ -97,14 +98,29 @@ async def meg_chat(request: ShadowRequest):
     if agent is None:
         return {"error": "Failed to retrieve the assistant agent."}
     
+    # Extract fields directly
+    query = request.query  # required field, always present
+    threadId = request.threadId  # required field, always present
+    target_account = request.target_account  # required field, always present
+
+    print(f"################################## {threadId}")
+
+    # Build structured parameters
+    params = {
+        "target_account": target_account,
+    }
+
+    # Combine query and parameters into a single string
+    combined_query = f"{query} - {params}"
+    
     # Retrieve or create a thread ID
-    if request.threadId:
-        currentthreadId = request.threadId
+    if threadId:
+        currentthreadId = threadId
     else:
         currentthreadId = await agent.create_thread()
 
     # Create the user message content with the request.query
-    message_user = ChatMessageContent(role=AuthorRole.USER, content=request.query)
+    message_user = ChatMessageContent(role=AuthorRole.USER, content=combined_query)
     await agent.add_chat_message(thread_id=currentthreadId, message=message_user)
     
     # get any additional instructions passed for the assistant

@@ -14,10 +14,10 @@ class ShadowMegPlugin:
 
     @kernel_function(
         name="get_customer_docs",
-        description="Given a user query determine if a company name was mentioned. Use the company name and the query information to search the index containing information about customers.",
+        description="Given a user query determine the users request involves a target account.",
     )
     def get_customer_docs(
-        self, query: Annotated[str, "The query and the customer name from the user."]
+        self, query: Annotated[str, "The query and the target account company name provided by the user."]
     ) -> Annotated[str, "Returns documents from the customer index."]:
         try:
             # Ensure query is valid

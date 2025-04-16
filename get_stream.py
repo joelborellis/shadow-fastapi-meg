@@ -31,11 +31,11 @@ async def consume_sse(url: str, payload: str):
 
                         json_data = json.loads(line)
                         content = json_data.get("data", "")
-                        thread_id = json_data.get("thread_id", "")
+                        threadId = json_data.get("threadId", "")
 
                         # Print thread_id only once
-                        if thread_id and not thread_id_printed:
-                            print(f"Thread id: {thread_id}")
+                        if threadId and not thread_id_printed:
+                            print(f"Thread id: {threadId}")
                             thread_id_printed = True
 
                         if content:
@@ -47,7 +47,7 @@ async def consume_sse(url: str, payload: str):
                     except json.JSONDecodeError:
                         print("Could not parse JSON:", line)
 
-    return thread_id
+    return threadId
 
 
 async def main():
@@ -67,7 +67,9 @@ async def main():
         # Construct request payload
         payload = {
             "query": query,
-            "threadId": thread_id
+            "threadId": thread_id,
+            "additional_instructions": "Format your output in markdown",
+            "target_account": "Panda Health Systems"
         }  # thread_id will be empty first time
         # call consume what will create the streaming like output
         thread_id = await consume_sse(url, payload)
