@@ -52,7 +52,7 @@ async def consume_sse(url: str, payload: str):
 
 async def main():
 
-    thread_id = ""
+    threadId = ""
 
     while True:
         # Get user query
@@ -61,18 +61,18 @@ async def main():
             exit(0)
 
         # Point this to your actual SSE endpoint
-        #url = "https://shadow-fastapi-6azng7abetzb2-function-app.azurewebsites.net/shadow-sk-no-stream"
-        url = "http://localhost:7071/meg-chat"
+        url = "https://shadow-endpoint-meg-jxe7jdce22roq-function-app.azurewebsites.net/meg-chat"
+        #url = "http://localhost:7071/meg-chat"
 
         # Construct request payload
         payload = {
             "query": query,
-            "threadId": thread_id,
+            "threadId": threadId,
             "additional_instructions": "Format your output in markdown",
             "target_account": "Panda Health Systems"
         }  # thread_id will be empty first time
         # call consume what will create the streaming like output
-        thread_id = await consume_sse(url, payload)
+        threadId = await consume_sse(url, payload)
 
 
 if __name__ == "__main__":
