@@ -71,7 +71,7 @@ class SearchCustomer:
                 vector_queries=[vector_query],
                 #select=["category", "sourcefile", "content"],
                 select=["title", "chunk"],
-                top=3,
+                top=10,
             )
             for doc in r:
                 results.append(

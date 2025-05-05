@@ -102,12 +102,11 @@ async def meg_chat(request: ShadowRequest):
     query = request.query  # required field, always present
     threadId = request.threadId  # required field, always present
     target_account = request.target_account  # required field, always present
-
-    print(f"################################## {threadId}")
+    additional_instructions = request.additional_instructions  # optional
 
     # Build structured parameters
     params = {
-        "target_account": target_account,
+        "target_account": target_account
     }
 
     # Combine query and parameters into a single string
@@ -124,12 +123,12 @@ async def meg_chat(request: ShadowRequest):
     await agent.add_chat_message(thread_id=currentthreadId, message=message_user)
     
     # get any additional instructions passed for the assistant
-    additional_instructions = request.additional_instructions or None
+    _additional_instructions = f"<additional_instructions>{additional_instructions}</additional_instructions>" or None
     
     try:
         # Collect all messages from the async iterable
         full_response = []
-        async for message in agent.invoke(thread_id=currentthreadId, additional_instructions=additional_instructions):
+        async for message in agent.invoke(thread_id=currentthreadId, additional_instructions=_additional_instructions):
             if message.content.strip():  # Skip empty content
                 full_response.append(message.content)
 
